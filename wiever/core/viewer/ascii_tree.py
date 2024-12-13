@@ -1,9 +1,20 @@
 import os
+import re
 
 class AsciiTree:
-    def __init__(self, root_dir: str, max_depth: int = -1):
+    def __init__(
+        self, 
+        root_dir: str, 
+        max_depth: int, 
+        include: list[str] = None, 
+        exclude: list[str] = None, 
+        regex: str = None
+    ):
         self.root_dir = root_dir
         self.max_depth = max_depth
+        self.include = set(include) if include else None
+        self.exclude = set(exclude) if exclude else None
+        self.regex = re.compile(regex) if regex else None
 
     def display(self):
         if not os.path.exists(self.root_dir):
@@ -14,10 +25,18 @@ class AsciiTree:
         self._print_tree(self.root_dir, prefix="", current_depth=0)
 
     def _print_tree(self, directory: str, prefix: str, current_depth: int):
-        if self.max_depth != -1 and current_depth >= self.max_depth:
+        if self.max_depth != 0 and current_depth >= self.max_depth:
             return
 
         entries = sorted(os.listdir(directory))
+
+        if self.include:
+            entries = [entry for entry in entries if entry in self.include]
+        if self.exclude:
+            entries = [entry for entry in entries if entry not in self.exclude]
+        if self.regex:
+            entries = [entry for entry in entries if self.regex.search(entry)]
+
         entries_count = len(entries)
 
         for i, entry in enumerate(entries):
